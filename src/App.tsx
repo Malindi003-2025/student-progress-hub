@@ -1,7 +1,5 @@
 import { useState } from 'react'
 import Announcements from './pages/Announcements'
-import './App.css'
-
 function App() {
   const [currentPage, setCurrentPage] = useState('home')
 
