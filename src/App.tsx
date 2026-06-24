@@ -32,19 +32,18 @@ function App() {
     setError('')
     setStudent(null)
 
-    const { data: studentData, error: studentError } = await supabase
+    const { data: studentData, error: gradestError } = await supabase
       .from('grades')
       .select('*')
       .eq('student_id', admissionNo.trim())
-      .single()
-
     if (studentError || !studentData) {
       setError('Admission number not found. Check with your admin.')
       setLoading(false)
       return
     }
 
-    const { data: gradesData, error: gradesError } = await supabase
+    setStudent{gradesData} // gradesData is now an array of courses
+    setLoading(false)
       .from('grades')
       .select('*')
       .eq('student_id', studentData.id)
