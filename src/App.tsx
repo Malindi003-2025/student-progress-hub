@@ -33,9 +33,9 @@ function App() {
     setStudent(null)
 
     const { data: studentData, error: studentError } = await supabase
-      .from('students')
+      .from('grades')
       .select('*')
-      .eq('admission_number', admissionNo.trim())
+      .eq('student_id', admissionNo.trim())
       .single()
 
     if (studentError || !studentData) {
