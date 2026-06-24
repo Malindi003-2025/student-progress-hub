@@ -35,7 +35,7 @@ function App() {
     const { data: gradesData, error: gradesError } = await supabase
      .from('grades')
      .select('*')
-     .eq('student_id', admissionNo.trim())
+     .ilike('student_id', admissionNo.trim())
 
     if (gradesError ||!gradesData || gradesData.length === 0) {
       setError('Admission number not found. Check with your admin.')
