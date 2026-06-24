@@ -1,117 +1,99 @@
 import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://dvtmqrtbnbnuzwteqeya.supabase.co'
-const supabaseKey = 'sb_publishable_rzidlatCKr8sgrNGH2vnyw_T0DuaSiV'
+const supabaseUrl = 'https://dvtmrqtbnbnuzwteqeya.supabase.co'
+const supabaseKey = 'sb_publishable_rzid1atCKr8sgrNGH2vnyw_T0DuaSiV'
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 type Grade = {
   id: number
-  subject: string
-  score: number
+  student_id: string
+  student_name: string
+  course_code: string
+  course_name: string
   grade: string
-}
-
-type Student = {
-  id: number
-  name: string
-  admission_number: string
-  class: string
-  grades: Grade[]
+  semester: string
+  year: number
 }
 
 function App() {
   const [admissionNo, setAdmissionNo] = useState('')
-  const [student, setStudent] = useState<Student | null>(null)
+  const [grades, setGrades] = useState<Grade[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const fetchGrades = async () => {
-    if (!admissionNo) return
+    if (!admissionNo.trim()) {
+      setError('Please enter an admission number')
+      return
+    }
+
     setLoading(true)
     setError('')
-    setStudent(null)
+    setGrades([])
 
-    const { data: studentData, error: gradestError } = await supabase
-      .from('grades')
-      .select('*')
-      .eq('student_id', admissionNo.trim())
-    if (studentError || !studentData) {
+    const { data: gradesData, error: gradesError } = await supabase
+     .from('grades')
+     .select('*')
+     .eq('student_id', admissionNo.trim())
+
+    if (gradesError ||!gradesData || gradesData.length === 0) {
       setError('Admission number not found. Check with your admin.')
       setLoading(false)
       return
     }
 
-    setStudent{gradesData} // gradesData is now an array of courses
-    setLoading(false)
-      .from('grades')
-      .select('*')
-      .eq('student_id', studentData.id)
-      .order('subject', { ascending: true })
-
-    if (gradesError) {
-      setError('Could not load grades. Try again.')
-      setLoading(false)
-      return
-    }
-
-    setStudent({ ...studentData, grades: gradesData || [] })
+    setGrades(gradesData)
     setLoading(false)
   }
 
   return (
-    <div style={{ fontFamily: 'Arial', maxWidth: '600px', margin: '40px auto', padding: '20px' }}>
-      <h1>CHS Student Education Hub - 2026</h1>
-      <p>Enter your Admission Number to view your progress</p>
-      
-      <div style={{ margin: '20px 0' }}>
-        <input 
+    <div style={{ padding: '20px', fontFamily: 'Arial' }}>
+      <h1>Student Progress Hub</h1>
+
+      <div style={{ marginBottom: '20px' }}>
+        <input
           type="text"
-          placeholder="e.g. ISERC/040/2025"
           value={admissionNo}
           onChange={(e) => setAdmissionNo(e.target.value)}
-          style={{ padding: '10px', width: '70%', marginRight: '10px' }}
+          placeholder="Enter Admission Number"
+          style={{ padding: '8px', marginRight: '10px' }}
+          onKeyDown={(e) => e.key === 'Enter' && fetchGrades()}
         />
-        <button 
-          onClick={fetchGrades} 
-          disabled={loading}
-          style={{ padding: '10px 20px', cursor: 'pointer' }}
-        >
-          {loading ? 'Loading...' : 'Check Grades'}
+        <button onClick={fetchGrades} disabled={loading}>
+          {loading? 'Searching...' : 'Check Grades'}
         </button>
       </div>
 
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      {student && (
-        <div style={{ marginTop: '30px', border: '1px solid #ccc', padding: '20px', borderRadius: '8px' }}>
-          <h2>Welcome, {student.name}</h2>
-          <p><strong>Admission No:</strong> {student.admission_number}</p>
-          <p><strong>Class:</strong> {student.class}</p>
-          
-          <h3>Your Grades</h3>
-          {student.grades.length === 0 ? (
-            <p>No grades uploaded yet.</p>
-          ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#f0f0f0' }}>
-                  <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Subject</th>
-                  <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Score</th>
-                  <th style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'left' }}>Grade</th>
+      {grades.length > 0 && (
+        <div>
+          <h2>Results for: {grades[0].student_name}</h2>
+          <h3>Admission No: {grades[0].student_id}</h3>
+
+          <table border={1} cellPadding={8} style={{ borderCollapse: 'collapse', marginTop: '10px' }}>
+            <thead>
+              <tr>
+                <th>Course Code</th>
+                <th>Course Name</th>
+                <th>Grade</th>
+                <th>Semester</th>
+                <th>Year</th>
+              </tr>
+            </thead>
+            <tbody>
+              {grades.map((grade) => (
+                <tr key={grade.id}>
+                  <td>{grade.course_code}</td>
+                  <td>{grade.course_name}</td>
+                  <td><strong>{grade.grade}</strong></td>
+                  <td>{grade.semester}</td>
+                  <td>{grade.year}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {student.grades.map((grade) => (
-                  <tr key={grade.id}>
-                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{grade.subject}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{grade.score}</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{grade.grade}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
